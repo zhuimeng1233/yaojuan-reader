@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Local custom configuration (protects private disk paths)
+config.json
+BLOG.md
+
+# User added novels (keep demo sample.md only)
+books/*
+!books/sample.md
+!books/星港来信.md
+!books/长夜邮差.txt
+!books/雾岭档案.md
+!books/.gitkeep
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

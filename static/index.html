@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="parchment">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>遥卷 · Yaojuan</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/reader.css">
+  <script src="/static/qrcode.min.js"></script>
+</head>
+<body>
+  <!-- 顶部主导航栏 -->
+  <header class="top-nav" id="topNav">
+    <div class="nav-left">
+      <button class="nav-btn icon-btn" id="btnToggleSidebar" title="目录与书架 (快捷键 B)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <span class="btn-text">目录</span>
+      </button>
+      <div class="book-info">
+        <span class="book-title" id="bookTitle">正在加载...</span>
+        <span class="current-chapter-pill" id="currentChapterPill">第 1 章</span>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <!-- 遥控状态徽标按键 -->
+      <button class="nav-btn remote-btn" id="btnOpenRemoteModal" title="手机局域网无线遥控">
+        <span class="status-dot disconnected" id="remoteStatusDot"></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        <span id="remoteStatusText">手机遥控</span>
+      </button>
+
+      <!-- 搜索 -->
+      <button class="nav-btn icon-btn" id="btnSearch" title="全文搜索 (快捷键 S)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+
+      <!-- 排版/字号设置 -->
+      <button class="nav-btn icon-btn" id="btnSettings" title="阅读排版设置">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+      </button>
+
+      <!-- 主题快捷切换 -->
+      <button class="nav-btn icon-btn" id="btnThemeCycle" title="一键循环主题 (快捷键 T)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+
+      <!-- 全屏 -->
+      <button class="nav-btn icon-btn" id="btnFullscreen" title="全屏沉浸阅读 (快捷键 F)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主布局容器 -->
+  <div class="layout-container">
+    <!-- 侧边栏：目录、书架、搜索结果 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="tab-toc">双层目录</button>
+          <button class="tab-btn" data-tab="tab-shelf">快速书架</button>
+          <button class="tab-btn" data-tab="tab-search">全文搜索</button>
+        </div>
+        <button class="close-sidebar-btn" id="btnCloseSidebar">×</button>
+      </div>
+
+      <!-- 选项卡 1：双层目录 -->
+      <div class="tab-pane active" id="tab-toc">
+        <div class="toc-toolbar">
+          <span class="toc-stats" id="tocStats">0 章 · 0 幕</span>
+          <div class="toc-actions">
+            <button class="mini-btn" id="btnExpandAll">展开全部</button>
+            <button class="mini-btn" id="btnCollapseAll">折叠全部</button>
+            <button class="mini-btn" id="btnLocateCurrent">定位当前</button>
+          </div>
+        </div>
+        <div class="toc-filter-box" id="tocFilterBox">
+          <input type="text" id="tocFilterInput" class="toc-filter-input" placeholder="快速筛选章节（如：120 或 任务）...">
+        </div>
+        <div class="toc-tree" id="tocTree">
+          <!-- 动态渲染的双层目录树 -->
+        </div>
+      </div>
+
+      <!-- 选项卡 2：本地书架 -->
+      <div class="tab-pane" id="tab-shelf">
+        <div class="shelf-section">
+          <div class="shelf-heading-row">
+            <div class="section-title">快捷书单</div>
+            <button class="mini-btn shelf-restore-btn" id="btnRestoreHiddenBooks" hidden>恢复已移除</button>
+          </div>
+          <div class="shelf-list" id="presetBookList">
+            <div class="loading-hint">正在扫描本地小说...</div>
+          </div>
+        </div>
+        <div class="shelf-section">
+          <div class="section-title">打开其他文本</div>
+          <label class="file-drop-zone" id="dropZone">
+            <input type="file" id="filePicker" accept=".txt,.md" style="display:none;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>点击选择或将 TXT / MD 文件拖拽到此处</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 选项卡 3：全文搜索 -->
+      <div class="tab-pane" id="tab-search">
+        <div class="search-box-wrap">
+          <input type="text" id="searchInput" class="search-input" placeholder="输入关键词并在全书中搜索...">
+          <button class="search-exec-btn" id="btnExecSearch">搜索</button>
+        </div>
+        <div class="search-summary" id="searchSummary">输入关键词开始检索</div>
+        <div class="search-results-list" id="searchResultsList"></div>
+      </div>
+    </aside>
+
+    <!-- 阅读主体区域 -->
+    <main class="reading-viewport" id="viewport">
+      <article class="article-container" id="articleContainer">
+        <!-- 小说内容动态挂载于此 -->
+        <div class="book-cover-header" id="bookCoverHeader">
+          <h1 class="novel-main-title" id="novelMainTitle">正在准备图书...</h1>
+          <p class="novel-meta-info" id="novelMetaInfo"></p>
+        </div>
+        <div class="article-content" id="articleContent">
+          <div class="loading-spinner">正在解析章节结构与排版渲染...</div>
+        </div>
+      </article>
+
+      <!-- 翻页快捷悬浮翻页条 -->
+      <div class="floating-nav-buttons">
+        <button class="float-btn" id="btnFloatPrev" title="上一分幕 / 上翻页 (快捷键 PageUp)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        </button>
+        <button class="float-btn" id="btnFloatNext" title="下一分幕 / 下翻页 (快捷键 PageDown)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+      </div>
+
+      <!-- 浮动遥控响应指示器 HUD -->
+      <div class="remote-hud" id="remoteHud">
+        <span class="hud-icon">📱</span>
+        <span class="hud-text" id="hudText">手机已下翻</span>
+      </div>
+    </main>
+  </div>
+
+  <!-- 底部固定进度栏 -->
+  <footer class="bottom-status-bar" id="statusBar">
+    <div class="status-left">
+      <span id="statusSceneTitle">正在加载...</span>
+    </div>
+    <div class="status-center">
+      <span id="statusProgressPercent">0.0%</span>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+      </div>
+    </div>
+    <div class="status-right">
+      <span id="statusWordCount">全书共计 0 字</span>
+    </div>
+  </footer>
+
+  <!-- 弹窗 1：手机无线遥控器管理与 PIN 鉴权 -->
+  <div class="modal-overlay" id="remoteModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">LAN 无线遥控</span>
+          <h2>手机专属遥控端</h2>
+        </div>
+        <button class="modal-close-btn" id="btnCloseRemoteModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="remote-connect-grid">
+          <!-- 左侧：二维码与扫码连接 -->
+          <div class="qr-column">
+            <div class="qrcode-wrapper" id="qrCodeContainer">
+              <!-- 二维码由 qrcode.min.js 渲染 -->
+            </div>
+            <p class="qr-tip">手机相机或浏览器扫码直连</p>
+            <div class="ip-selector-wrap">
+              <label>局域网地址：</label>
+              <select id="lanIpSelect" class="styled-select"></select>
+            </div>
+            <div class="url-copy-box">
+              <input type="text" id="remoteUrlInput" readonly>
+              <button class="copy-btn" id="btnCopyRemoteUrl">复制</button>
+            </div>
+          </div>
+
+          <!-- 右侧：PIN 码、权限与受控设备数限制 -->
+          <div class="auth-column">
+            <div class="pin-card">
+              <div class="pin-label">8 位临时验证 PIN 码（大小写不敏感）</div>
+              <div class="pin-code-display" id="pinDisplay">--------</div>
+              <div class="pin-actions">
+                <button class="action-btn" id="btnRefreshPin">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  刷新更换 PIN
+                </button>
+                <span class="pin-note">手机连接时需输入此 PIN 验证身份</span>
+              </div>
+            </div>
+
+            <!-- 控制设备数限制 -->
+            <div class="device-limit-card">
+              <div class="limit-header">
+                <span class="label-text">允许受控设备上限：</span>
+                <div class="stepper-wrap">
+                  <button class="stepper-btn" id="btnDecMaxDevices">-</button>
+                  <span class="stepper-value" id="maxDevicesValue">1 台</span>
+                  <button class="stepper-btn" id="btnIncMaxDevices">+</button>
+                </div>
+              </div>
+              <p class="limit-subtext">达到上限后，其他设备即使知晓 PIN 也会被拒绝接入。</p>
+            </div>
+
+            <!-- 已连接设备列表 -->
+            <div class="connected-devices-card">
+              <div class="devices-header">
+                <span>已授权连接的遥控端 (<span id="connectedCount">0</span>)</span>
+              </div>
+              <div class="device-list" id="deviceListContainer">
+                <div class="empty-device-hint">暂无手机接入，扫码或打开上方链接即可配对。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗 2：阅读排版与外观设置 -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card small-card">
+      <div class="modal-header">
+        <h2>阅读排版与外观</h2>
+        <button class="modal-close-btn" id="btnCloseSettingsModal">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- 护眼主题 -->
+        <div class="setting-group">
+          <label class="setting-title">色彩主题</label>
+          <div class="theme-picker-grid">
+            <button class="theme-chip" data-theme="parchment" title="经典羊皮纸 (暖黄护眼)">
+              <span class="chip-color" style="background: #f6f1e5; border-color: #dfd7c5;"></span>
+              <span>羊皮纸</span>
+            </button>
+            <button class="theme-chip" data-theme="greentea" title="豆沙绿 (舒缓疲劳)">
+              <span class="chip-color" style="background: #e8f2e8; border-color: #cde0cd;"></span>
+              <span>豆沙绿</span>
+            </button>
+            <button class="theme-chip" data-theme="cleanwhite" title="极简水墨 (高对比雅白)">
+              <span class="chip-color" style="background: #fafafa; border-color: #ddd;"></span>
+              <span>水墨白</span>
+            </button>
+            <button class="theme-chip" data-theme="darkgray" title="夜间雅灰 (夜晚不刺眼)">
+              <span class="chip-color" style="background: #23272e; border-color: #3b4048;"></span>
+              <span>夜间灰</span>
+            </button>
+            <button class="theme-chip" data-theme="pureblack" title="纯黑 OLED (深邃极暗)">
+              <span class="chip-color" style="background: #0d0d0d; border-color: #222;"></span>
+              <span>纯黑OLED</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 字体选择 -->
+        <div class="setting-group">
+          <label class="setting-title">正文字体</label>
+          <div class="font-picker-row">
+            <select id="fontFamilySelect" class="styled-select">
+              <option value="'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif">思源宋体 / 典雅衬线</option>
+              <option value="'LXGW WenKai', 'Kaiti', 'STKaiti', serif">霞鹜文楷 / 优美楷体</option>
+              <option value="'Microsoft YaHei', -apple-system, sans-serif">微软雅黑 / 清爽无衬线</option>
+              <option value="'FangSong', 'STFangsong', serif">仿宋体 / 经典书卷</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 字号调节 -->
+        <div class="setting-group">
+          <div class="setting-label-row">
+            <span class="setting-title">字号大小</span>
+            <span class="setting-val" id="fontSizeVal">20px</span>
+          </div>
+          <div class="slider-stepper-row">
+            <button class="step-btn" id="btnDecFontSize">A-</button>
+            <input type="range" id="fontSizeSlider" min="14" max="36" value="20" step="1">
+            <button class="step-btn" id="btnIncFontSize">A+</button>
+          </div>
+        </div>
+
+        <!-- 行间距 -->
+        <div class="setting-group">
+          <div class="setting-label-row">
+            <span class="setting-title">行间距</span>
+            <span class="setting-val" id="lineHeightVal">1.8</span>
+          </div>
+          <div class="slider-stepper-row">
+            <button class="step-btn" id="btnDecLineHeight">-</button>
+            <input type="range" id="lineHeightSlider" min="1.4" max="2.6" value="1.8" step="0.1">
+            <button class="step-btn" id="btnIncLineHeight">+</button>
+          </div>
+        </div>
+
+        <!-- 页面宽度 -->
+        <div class="setting-group">
+          <div class="setting-label-row">
+            <span class="setting-title">阅读宽度</span>
+            <span class="setting-val" id="contentWidthVal">860px</span>
+          </div>
+          <input type="range" id="contentWidthSlider" min="650" max="1300" value="860" step="30">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/reader.js"></script>
+</body>
+</html>

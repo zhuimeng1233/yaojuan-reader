@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>遥卷 · 专属无线遥控器</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/remote.css">
+</head>
+<body>
+  <!-- 门禁验证界面（未输入正确 PIN 时展示） -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-box">
+      <div class="auth-icon">📱</div>
+      <h1 class="auth-title">遥卷 · 手机专属遥控端</h1>
+      <p class="auth-desc">请输入电脑端显示的 8 位临时 PIN 码<br><span class="desc-hint">（大小写不敏感，仅提供遥控权限，不开放正文阅读）</span></p>
+
+      <div class="pin-input-wrap">
+        <input 
+          type="text" 
+          id="pinInput" 
+          class="pin-input" 
+          maxlength="8" 
+          placeholder="8位字母数字" 
+          autocomplete="off" 
+          autocorrect="off" 
+          autocapitalize="characters" 
+          spellcheck="false"
+        >
+      </div>
+
+      <div class="auth-error-msg" id="authErrorMsg"></div>
+
+      <button class="connect-btn" id="btnConnect">立即连接电脑</button>
+    </div>
+  </div>
+
+  <!-- 遥控手柄操作界面（验证通过后展示） -->
+  <div class="controller-screen" id="controllerScreen" style="display: none;">
+    <!-- 顶部状态栏 -->
+    <header class="controller-header">
+      <div class="status-indicator">
+        <span class="live-dot"></span>
+        <span class="status-label">已连接电脑 (在线)</span>
+      </div>
+      <button class="disconnect-btn" id="btnDisconnect">断开</button>
+    </header>
+
+    <!-- 主手势与触控翻页区 -->
+    <main class="controller-body">
+      <!-- 1. 核心翻页大按键 -->
+      <div class="page-action-row">
+        <button class="action-btn-large btn-prev-page" id="btnPageUp">
+          <span class="btn-icon">▲</span>
+          <span class="btn-name">上一页</span>
+        </button>
+        <button class="action-btn-large btn-next-page" id="btnPageDown">
+          <span class="btn-icon">▼</span>
+          <span class="btn-name">下一页</span>
+        </button>
+      </div>
+
+      <!-- 2. 虚拟触摸滑板区 (手指在上面滑动可连续平滑滚屏，轻点下翻) -->
+      <div class="trackpad-area" id="trackpadArea">
+        <div class="trackpad-hint">
+          <span class="trackpad-icon">⬍</span>
+          <span class="trackpad-text">虚拟滑板 · 上下滑动平滑滚屏 · 点击下翻</span>
+        </div>
+        <div class="trackpad-finger-ripple" id="trackpadRipple"></div>
+      </div>
+
+      <!-- 3. 幕级跳转与缩放控制 -->
+      <div class="controls-grid">
+        <button class="grid-btn" id="btnPrevScene">
+          <span class="grid-btn-icon">⏮</span>
+          <span>上一幕</span>
+        </button>
+        <button class="grid-btn" id="btnNextScene">
+          <span class="grid-btn-icon">⏭</span>
+          <span>下一幕</span>
+        </button>
+        <button class="grid-btn" id="btnZoomOut">
+          <span class="grid-btn-icon">A-</span>
+          <span>缩小字号</span>
+        </button>
+        <button class="grid-btn" id="btnZoomIn">
+          <span class="grid-btn-icon">A+</span>
+          <span>放大字号</span>
+        </button>
+      </div>
+
+      <!-- 4. 辅助工具栏 -->
+      <div class="tool-actions-row">
+        <button class="tool-btn" id="btnTheme">
+          <span class="tool-icon">🎨</span>
+          <span>主题</span>
+        </button>
+        <button class="tool-btn" id="btnFullscreen">
+          <span class="tool-icon">⛶</span>
+          <span>全屏</span>
+        </button>
+        <button class="tool-btn" id="btnToggleToc">
+          <span class="tool-icon">📑</span>
+          <span>目录</span>
+        </button>
+        <button class="tool-btn" id="btnScrollTop">
+          <span class="tool-icon">⬆</span>
+          <span>回顶</span>
+        </button>
+        <button class="tool-btn" id="btnScrollBottom">
+          <span class="tool-icon">⬇</span>
+          <span>触底</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- 底部常亮与反馈提示 -->
+    <footer class="controller-footer">
+      <span id="wakeLockStatus">💡 屏幕常亮已开启 · 专为舒适单手盲操设计</span>
+    </footer>
+  </div>
+
+  <script src="/static/remote.js"></script>
+</body>
+</html>
